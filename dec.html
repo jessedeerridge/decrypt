@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>テンプレ</title>
+<style>
+  html, body{height:100%; overflow:hidden;}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#fff;color:#111;}
+  header{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid #eee; position:sticky; top:0; z-index:400; background:#fff;}
+  h1{margin:0;font-size:18px;}
+  .small{font-size:12px;opacity:.75;}
+  .join-box{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:12px; position:relative; z-index:2;}
+  .join-box input{padding:8px;border:1px solid #ddd;border-radius:6px;font-size:16px;}
+  .btn{padding:6px 10px;border:1px solid #ddd;border-radius:6px;background:#f8f8f8;cursor:pointer;}
+  .btn.primary{background:#111;color:#fff;border-color:#111;}
+  .btn.ghost{background:transparent;}
+  .hidden{display:none;}
+  #lobby{padding:20px;border-top:1px solid #eee; position:relative; z-index:2;}
+  .copy-btn.copied, .btn.ghost.copied{background:#16a34a;color:#fff;border-color:#16a34a;}
+
+  main{
+    position:relative;
+    height:calc(100vh - 60px);
+    overflow:auto;
+    -webkit-overflow-scrolling:touch;
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+  }
+  main.prejoin{ background-image:url('maemain.jpg'); }
+  main.joined{ background-image:url('maingazo.jpg'); }
+
+  .seat-pop{
+    position:fixed;left:50%;bottom:10px;transform:translateX(-50%);
+    background:orange;border:1px solid #eee;border-radius:12px;
+    box-shadow:0 12px 28px rgba(0,0,0,.12);
+    padding:10px;z-index:220;display:flex;flex-direction:column;gap:10px;min-width:280px;
+  }
+  .seat-pop.hidden{display:none;}
+  .seat-pop .row{display:flex;gap:8px;align-items:center;}
+  .seat-pop label{width:84px;font-size:13px;}
+  .seat-pop .tabs{display:flex;gap:6px;flex-wrap:wrap;}
+  .tab{padding:6px 10px;border:1px solid #ddd;border-radius:999px;cursor:pointer;user-select:none;position:relative;}
+  .tab.disabled{opacity:.45; pointer-events:none;}
+  .tab.disabled::after{content:'✕';position:absolute;inset:0;display:grid;place-items:center;font-size:18px;font-weight:700;color:#b91c1c;pointer-events:none;}
+  .tab.active{background:#111;color:#fff;border-color:#111;}
+
+  .host-selecting-pop{
+    position:fixed;left:50%;bottom:10px;transform:translateX(-50%);
+    background:rgba(20,20,20,.92);color:#fff;
+    padding:12px 16px;border-radius:14px;
+    box-shadow:0 18px 40px rgba(0,0,0,.35);
+    z-index:225;font-weight:800;white-space:nowrap;
+    pointer-events:none;
+  }
+  .host-selecting-pop.hidden{display:none;}
+
+  .top-left-name-tags{
+    position:fixed;
+    left:10px;
+    top:70px;
+    z-index:230;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:6px;
+    pointer-events:auto;
+  }
+  .top-left-name-tags.hidden{display:none;}
+  .top-left-name-tag{
+    padding:4px 8px;
+    border-radius:999px;
+    background:#f8f8f8;
+    border:1px solid #ddd;
+    font-size:12px;
+    white-space:nowrap;
+    box-shadow:0 4px 10px rgba(0,0,0,.10);
+  }
+  .top-left-name-tag.me{background:#111;color:#fff;border-color:#111;}
+
+  .dialog-backdrop{
+    position:fixed;inset:0;background:rgba(0,0,0,.35);
+    display:flex;align-items:center;justify-content:center;z-index:300;
+  }
+  .dialog-backdrop.hidden{display:none;}
+  .dialog-box{
+    background:#fff;border-radius:12px;padding:16px 18px;
+    box-shadow:0 18px 40px rgba(0,0,0,.35);
+    max-width:320px;width:calc(100% - 40px);
+  }
+  .dialog-box p{margin:0 0 12px;font-size:14px;line-height:1.6;}
+  .dialog-buttons{display:flex;justify-content:flex-end;gap:8px;}
+
+  .host-settings-btn{
+    position:fixed;right:16px;bottom:16px;width:44px;height:44px;border-radius:50%;
+    border:1px solid #ddd;background:#fff;box-shadow:0 8px 20px rgba(0,0,0,.18);
+    display:none;align-items:center;justify-content:center;font-size:22px;cursor:pointer;z-index:230;
+  }
+  .host-settings-btn.visible{display:flex;}
+
+  .start-pop{
+    position:fixed;right:16px;bottom:72px;background:#fff;border:1px solid #ddd;border-radius:12px;
+    box-shadow:0 12px 28px rgba(0,0,0,.16);padding:10px 12px;z-index:240;min-width:260px;
+    display:flex;flex-direction:column;gap:8px;
+  }
+  .start-pop.hidden{display:none;}
+  .start-pop-header{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+  .start-pop-title{font-size:14px;font-weight:600;}
+  .start-pop-main{font-size:13px;line-height:1.5;}
+  .start-pop-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:4px;flex-wrap:wrap;}
+
+  #roomInfoLobby, #lobby h2, #lobby p {display:none;}
+  #lobby.entered{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:flex-start;
+    min-height:calc(100vh - 60px);
+  }
+
+  /* ===== ここから導入図形 ===== */
+  :root {
+    --small: 15px;
+    --small-gap: 5px;
+    --side-padding: 6px;
+    --square-area: calc(var(--small) * 2 + var(--small-gap));
+    --right-tab-width: 60px;
+    --tab-height: 20px;
+    --answer-rectangle-adjust: 2px;
+  }
+
+  .wrapper {
+    width: 400px;
+  }
+
+  .table {
+    width: 100%;
+    background: #fff;
+    border: 2px solid #333;
+    box-sizing: border-box;
+  }
+
+  .box {
+    border: 2px solid #333;
+    border-radius: 6px;
+    background: #fff;
+    box-sizing: border-box;
+  }
+
+  .top-table {
+    padding: 16px 20px;
+    margin-bottom: 18px;
+  }
+
+  .top-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+
+  .keywordbox {
+    height: 50px;
+  }
+
+  .bottom-table {
+    padding: 8px 20px 20px;
+  }
+
+  .middle-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    column-gap: 2px;
+    row-gap: 6px;
+    margin-bottom: 18px;
+  }
+
+  .person-card {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .tab-row {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr var(--right-tab-width);
+    column-gap: var(--small-gap);
+    padding: 0 var(--side-padding);
+    box-sizing: border-box;
+    align-items: end;
+    margin-bottom: -2px;
+    z-index: 2;
+  }
+
+  .name-tab {
+    position: relative;
+    width: 72px;
+    height: var(--tab-height);
+    margin-left: 2px;
+    display: flex;
+    align-items: center;
+    padding-left: 10px;
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 1;
+    box-sizing: border-box;
+    z-index: 2;
+  }
+
+  .name-tab svg,
+  .right-tab svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .name-tab span {
+    position: relative;
+    z-index: 1;
+  }
+
+  .right-tab {
+    grid-column: 2 / 3;
+    position: relative;
+    width: var(--right-tab-width);
+    height: var(--tab-height);
+    justify-self: end;
+    box-sizing: border-box;
+    z-index: 2;
+  }
+
+  .daikeic-group {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: var(--square-area);
+    display: grid;
+    grid-template-columns: var(--small) var(--small);
+    gap: var(--small-gap);
+    z-index: 1;
+  }
+
+  .daikeirectangleL,
+  .daikeirectangleR {
+    width: var(--small);
+    height: var(--small);
+    border: 2px solid #333;
+    background: #fff;
+    box-sizing: border-box;
+  }
+
+  .middle-box {
+    width: 100%;
+    height: 72px;
+    position: relative;
+    padding: 0 var(--side-padding);
+    display: grid;
+    grid-template-rows: repeat(3, 1fr);
+    box-sizing: border-box;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+
+  .middle-box::before,
+  .middle-box::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: #333;
+    transform: translateY(-50%);
+  }
+
+  .middle-box::before {
+    top: 33.333%;
+  }
+
+  .middle-box::after {
+    top: 66.666%;
+  }
+
+  .answer-row {
+    display: grid;
+    grid-template-columns: 1fr var(--right-tab-width);
+    column-gap: var(--small-gap);
+    align-items: center;
+  }
+
+  .answer-text {
+    min-width: 0;
+    height: 100%;
+  }
+
+  .answer-rectangles {
+    width: var(--square-area);
+    display: grid;
+    grid-template-columns: var(--small) var(--small);
+    gap: var(--small-gap);
+    justify-self: center;
+    transform: translateX(var(--answer-rectangle-adjust));
+  }
+
+  .answer-rectangleL,
+  .answer-rectangleR {
+    width: var(--small);
+    height: var(--small);
+    border: 2px solid #333;
+    background: #fff;
+    box-sizing: border-box;
+  }
+
+  .wide-bottom-box {
+    height: 160px;
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    background: #fff;
+  }
+
+  .hint-column {
+    position: relative;
+    border-right: 2px solid #333;
+    background: #fff;
+    display: grid;
+    grid-template-rows: repeat(8, 1fr);
+  }
+
+  .hint-column:last-child {
+    border-right: none;
+  }
+
+  .hint-row {
+    border-bottom: 1px solid #bbb;
+    box-sizing: border-box;
+  }
+
+  .hint-row:last-child {
+    border-bottom: none;
+  }
+  /* ===== ここまで導入図形 ===== */
+</style>
+</head>
+<body>
+
+<header>
+  <h1>テンプレ</h1>
+  <div style="display:flex;align-items:center;gap:6px;">
+    <div class="small" id="roomInfo"></div>
+    <button class="btn ghost" id="copyLinkBtn">リンクコピー</button>
+  </div>
+</header>
+
+<main id="main" class="prejoin">
+  <div class="join-box" id="joinBox">
+    <input id="userName" placeholder="名前（4文字以内）" maxlength="4" />
+    <input id="roomCode" placeholder="ルームコード（未入力で自動生成）" maxlength="12" />
+    <button class="btn primary" id="btnJoin">入室</button>
+  </div>
+
+  <div id="lobby" class="hidden">
+    <h2>ロビー</h2>
+    <div id="roomInfoLobby" style="margin-bottom:8px;"></div>
+    <p>ここにテーブルや情報が表示されます。</p>
+
+    <div class="wrapper">
+
+      <div class="table top-table">
+        <div class="top-row">
+          <div id="keywordbox1" class="box keywordbox"></div>
+          <div id="keywordbox2" class="box keywordbox"></div>
+          <div id="keywordbox3" class="box keywordbox"></div>
+          <div id="keywordbox4" class="box keywordbox"></div>
+        </div>
+      </div>
+
+      <div class="table bottom-table">
+
+        <div class="middle-grid">
+
+          <div id="answerboxQ1" class="person-card">
+            <div class="tab-row">
+              <div class="name-tab">
+                <svg viewBox="0 0 72 19" preserveAspectRatio="none">
+                  <polygon points="10,1 62,1 71,18 1,18" fill="#fff"></polygon>
+                  <polyline points="1,18 10,1 62,1 71,18" fill="none" stroke="#333" stroke-width="2" stroke-linejoin="round"></polyline>
+                </svg>
+                <span>#1</span>
+              </div>
+              <div class="right-tab">
+                <svg viewBox="0 0 60 19" preserveAspectRatio="none">
+                  <polygon points="9,1 51,1 59,18 1,18" fill="#fff"></polygon>
+                  <polyline points="1,18 9,1 51,1 59,18" fill="none" stroke="#333" stroke-width="2" stroke-linejoin="round"></polyline>
+                </svg>
+                <div class="daikeic-group">
+                  <div class="daikeirectangleL"></div>
+                  <div class="daikeirectangleR"></div>
+                </div>
+              </div>
+            </div>
+            <div class="box middle-box">
+              <div class="answer-row">
+                <div id="Q1answer1" class="answer-text"></div>
+                <div class="answer-rectangles">
+                  <div id="Q1answer1rectangleL" class="answer-rectangleL"></div>
+                  <div id="Q1answer1rectangleR" class="answer-rectangleR"></div>
+                </div>
+              </div>
+              <div class="answer-row">
+                <div id="Q1answer2" class="answer-text"></div>
+                <div class="answer-rectangles">
+                  <div id="Q1answer2rectangleL" class="answer-rectangleL"></div>
+                  <div id="Q1answer2rectangleR" class="answer-rectangleR"></div>
+                </div>
+              </div>
+              <div class="answer-row">
+                <div id="Q1answer3" class="answer-text"></div>
+                <div class="answer-rectangles">
+                  <div id="Q1answer3rectangleL" class="answer-rectangleL"></div>
+                  <div id="Q1answer3rectangleR" class="answer-rectangleR"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="answerboxQ5" class="person-card">
+            <div class="tab-row">
+              <div class="name-tab">
+                <svg viewBox="0 0 72 19" preserveAspectRatio="none">
+                  <polygon points="10,1 62,1 71,18 1,18" fill="#fff"></polygon>
+                  <polyline points="1,18 10,1 62,1 71,18" fill="none" stroke="#333" stroke-width="2" stroke-linejoin="round"></polyline>
+                </svg>
+                <span>#5</span>
+              </div>
+              <div class="right-tab">
+                <svg viewBox="0 0 60 19" preserveAspectRatio="none">
+                  <polygon points="9,1 51,1 59,18 1,18" fill="#fff"></polygon>
+                  <polyline points="1,18 9,1 51,1 59,18" fill="none" stroke="#333" stroke-width="2" stroke-linejoin="round"></polyline>
+                </svg>
+                <div class="daikeic-group">
+                  <div class="daikeirectangleL"></div>
+                  <div class="daikeirectangleR"></div>
+                </div>
+              </div>
+            </div>
+            <div class="box middle-box">
+              <div class="answer-row">
+                <div id="Q5answer1" class="answer-text"></div>
+                <div class="answer-rectangles">
+                  <div id="Q5answer1rectangleL" class="answer-rectangleL"></div>
+                  <div id="Q5answer1rectangleR" class="answer-rectangleR"></div>
+                </div>
+              </div>
+              <div class="answer-row">
+                <div id="Q5answer2" class="answer-text"></div>
+                <div class="answer-rectangles">
+                  <div id="Q5answer2rectangleL" class="answer-rectangleL"></div>
+                  <div id="Q5answer2rectangleR" class="answer-rectangleR"></div>
+                </div>
+              </div>
+              <div class="answer-row">
+                <div id="Q5answer3" class="answer-text"></div>
+                <div class="answer-rectangles">
+                  <div id="Q5answer3rectangleL" class="answer-rectangleL"></div>
+                  <div id="Q5answer3rectangleR" class="answer-rectangleR"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="answerboxQ2" class="person-card">
+            <div class="tab-row">
+              <div class="name-tab">
+                <svg viewBox="0 0 72 19" preserveAspectRatio="none">
+                  <polygon points="10,1 62,1 71,18 1,18" fill="#fff"></polygon>
+                  <polyline points="1,18 10,1 62,1 71,18" fill="none" stroke="#333" stroke-width="2" stroke-linejoin="round"></polyline>
+                </svg>
+                <span>#2</span>
+              </div>
+              <div class="right-tab">
+                <svg viewBox="0 0 60 19" preserveAspectRatio="none">
+                  <polygon points="9,1 51,1 59,18 1,18" fill="#fff"></polygon>
+                  <polyline points="1,18 9,1 51,1 59,18" fill="none" stroke="#333" stroke-width="2" stroke-linejoin="round"></polyline>
+                </svg>
+                <div class="daikeic-group">
+                  <div class="daikeirectangleL"></div>
+                  <div class="daikeirectangleR"></div>
+                </div>
+              </div>
+            </div>
+            <div class="box middle-box">
+              <div class="answer-row">
+                <div id="Q2answer1" class="answer-text"></div>
+                <div class="answer-rectangles">
+                  <div id="Q2answer1rectangleL" class="answer-rectangleL"></div>
+                  <div id="Q2answer1rectangleR" class="answer-rectangleR"></div>
+                </div>
+              </div>
+              <div class="answer-row">
+                <div id="Q2answer2" class="answer-text"></div>
+                <div class="answer-rectangles">
+                  <div id="Q2answer2rectangleL" class="answer-rectangleL"></div>
+                  <div id="Q2answer2rectangleR" class="answer-rectangleR"></div>
+                </div>
+              </div>
+              <div class="answer-row">
+                <div id="Q2answer3" class="answer-text"></div>
+                <div class="answer-rectangles">
+                  <div id="Q2answer3rectangleL" class="answer-rectangleL"></div>
+                  <div id="Q2answer3rectangleR" class="answer-rectangleR"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="answerboxQ6" class="person-card">
+            <div class="tab-row">
+              <div class="name-tab">
+                <svg viewBox="0 0 72 19" preserveAspectRatio="none">
+                  <polygon points="10,1 62,1 71,18 1,18" fill="#fff"></polygon>
+                  <polyline points="1,18 10,1 62,1 71,18" fill="none" stroke="#333" stroke-width="2" stroke-linejoin="round"></polyline>
+                </svg>
+                <span>#6</span>
+              </div>
+              <div class="right-tab">
+                <svg viewBox="0 0 60 19" preserveAspectRatio="none">
+                  <polygon points="9,1 51,1 59,18 1,18" fill="#fff"></polygon>
+                  <polyline points="1,18 9,1 51,1 59,18" fill="none" stroke="#333" stroke-width="2" stroke-linejoin="round"></polyline>
+                </svg>
+                <div class="daikeic-group">
+                  <div class="daikeirectangleL"></div>
+                  <div class="daikeirectangleR"></div>
+                </div>
+              </div>
+            </div>
+            <div class="box middle-box">
+              <div class="answer-row">
+                <div id="Q6answer1" class="answer-text"></div>
+                <div class="answer-rectangles">
+                  <div id="Q6answer1rectangleL" class="answer-rectangleL"></div>
+                  <div id="Q6answer1rectangleR" class="answer-rectangleR"></div>
+                </div>
+              </div>
+              <div class="answer-row">
+                <div id="Q6answer2" class="answer-text"></div>
+                <div class="answer-rectangles">
+                  <div id="Q6answer2rectangleL" class="answer-rectangleL"></div>
+                  <div id="Q6answer2rectangleR" class="answer-rectangleR"></div>
+                </div>
+              </div>
+              <div class="answer-row">
+                <div id="Q6answer3" class="answer-text"></div>
+                <div class="answer-rectangles">
+                  <div id="Q6answer3rectangleL" class="answer-rectangleL"></div>
+                  <div id="Q6answer3rectangleR" class="answer-rectangleR"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="answerboxQ3" class="person-card">
+            <div class="tab-row">
+              <div class="name-tab">
+                <svg viewBox="0 0 72 19" preserveAspectRatio="none">
+                  <polygon points="10,1 62,1 71,18 1,18" fill="#fff"></polygon>
+                  <polyline points="1,18 10,1 62,1 71,18" fill="none" stroke="#333" stroke-width="2" stroke-linejoin="round"></polyline>
+                </svg>
+                <span>#3</span>
+              </div>
+              <div class="right-tab">
+                <svg viewBox="0 0 60 19" preserveAspectRatio="none">
+                  <polygon points="9,1 51,1 59,18 1,18" fill="#fff"></polygon>
+                  <polyline points="1,18 9,1 51,1 59,18" fill="none" stroke="#333" stroke-width="2" stroke-linejoin="round"></polyline>
+                </svg>
+                <div class="daikeic-group">
+                  <div class="daikeirectangleL"></div>
+                  <div class="daikeirectangleR"></div>
+                </div>
+              </div>
+            </div>
+            <div class="box middle-box">
+              <div class="answer-row">
+                <div id="Q3answer1" class="answer-text"></div>
+                <div class="answer-rectangles">
+                  <div id="Q3answer1rectangleL" class="answer-rectangleL"></div>
+                  <div id="Q3answer1rectangleR" class="answer-rectangleR"></div>
+                </div>
+              </div>
+              <div class="answer-row">
+                <div id="Q3answer2" class="answer-text"></div>
+                <div class="answer-rectangles">
+                  <div id="Q3answer2rectangleL" class="answer-rectangleL"></div>
+                  <div id="Q3answer2rectangleR" class="answer-rectangleR"></div>
+                </div>
+              </div>
+              <div class="answer-row">
+                <div id="Q3answer3" class="answer-text"></div>
+                <div class="answer-rectangles">
+                  <div id="Q3answer3rectangleL" class="answer-rectangleL"></div>
+                  <div id="Q3answer3rectangleR" class="answer-rectangleR"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="answerboxQ7" class="person-card">
+            <div class="tab-row">
+              <div class="name-tab">
+                <svg viewBox="0 0 72 19" preserveAspectRatio="none">
+                  <polygon points="10,1 62,1 71,18 1,18" fill="#fff"></polygon>
+                  <polyline points="1,18 10,1 62,1 71,18" fill="none" stroke="#333" stroke-width="2" stroke-linejoin="round"></polyline>
+                </svg>
+                <span>#7</span>
+              </div>
+              <div class="right-tab">
+                <svg viewBox="0 0 60 19" preserveAspectRatio="none">
+                  <polygon points="9,1 51,1 59,18 1,18" fill="#fff"></polygon>
+                  <polyline points="1,18 9,1 51,1 59,18" fill="none" stroke="#333" stroke-width="2" stroke-linejoin="round"></polyline>
+                </svg>
+                <div class="daikeic-group">
+                  <div class="daikeirectangleL"></div>
+                  <div class="daikeirectangleR"></div>
+                </div>
+              </div>
+            </div>
+            <div class="box middle-box">
+              <div class="answer-row">
+                <div id="Q7answer1" class="answer-text"></div>
+                <div class="answer-rectangles">
+                  <div id="Q7answer1rectangleL" class="answer-rectangleL"></div>
+                  <div id="Q7answer1rectangleR" class="answer-rectangleR"></div>
+                </div>
+              </div>
+              <div class="answer-row">
+                <div id="Q7answer2" class="answer-text"></div>
+                <div class="answer-rectangles">
+                  <div id="Q7answer2rectangleL" class="answer-rectangleL"></div>
+                  <div id="Q7answer2rectangleR" class="answer-rectangleR"></div>
+                </div>
+              </div>
+              <div class="answer-row">
+                <div id="Q7answer3" class="answer-text"></div>
+                <div class="answer-rectangles">
+                  <div id="Q7answer3rectangleL" class="answer-rectangleL"></div>
+                  <div id="Q7answer3rectangleR" class="answer-rectangleR"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="answerboxQ4" class="person-card">
+            <div class="tab-row">
+              <div class="name-tab">
+                <svg viewBox="0 0 72 19" preserveAspectRatio="none">
+                  <polygon points="10,1 62,1 71,18 1,18" fill="#fff"></polygon>
+                  <polyline points="1,18 10,1 62,1 71,18" fill="none" stroke="#333" stroke-width="2" stroke-linejoin="round"></polyline>
+                </svg>
+                <span>#4</span>
+              </div>
+              <div class="right-tab">
+                <svg viewBox="0 0 60 19" preserveAspectRatio="none">
+                  <polygon points="9,1 51,1 59,18 1,18" fill="#fff"></polygon>
+                  <polyline points="1,18 9,1 51,1 59,18" fill="none" stroke="#333" stroke-width="2" stroke-linejoin="round"></polyline>
+                </svg>
+                <div class="daikeic-group">
+                  <div class="daikeirectangleL"></div>
+                  <div class="daikeirectangleR"></div>
+                </div>
+              </div>
+            </div>
+            <div class="box middle-box">
+              <div class="answer-row">
+                <div id="Q4answer1" class="answer-text"></div>
+                <div class="answer-rectangles">
+                  <div id="Q4answer1rectangleL" class="answer-rectangleL"></div>
+                  <div id="Q4answer1rectangleR" class="answer-rectangleR"></div>
+                </div>
+              </div>
+              <div class="answer-row">
+                <div id="Q4answer2" class="answer-text"></div>
+                <div class="answer-rectangles">
+                  <div id="Q4answer2rectangleL" class="answer-rectangleL"></div>
+                  <div id="Q4answer2rectangleR" class="answer-rectangleR"></div>
+                </div>
+              </div>
+              <div class="answer-row">
+                <div id="Q4answer3" class="answer-text"></div>
+                <div class="answer-rectangles">
+                  <div id="Q4answer3rectangleL" class="answer-rectangleL"></div>
+                  <div id="Q4answer3rectangleR" class="answer-rectangleR"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="answerboxQ8" class="person-card">
+            <div class="tab-row">
+              <div class="name-tab">
+                <svg viewBox="0 0 72 19" preserveAspectRatio="none">
+                  <polygon points="10,1 62,1 71,18 1,18" fill="#fff"></polygon>
+                  <polyline points="1,18 10,1 62,1 71,18" fill="none" stroke="#333" stroke-width="2" stroke-linejoin="round"></polyline>
+                </svg>
+                <span>#8</span>
+              </div>
+              <div class="right-tab">
+                <svg viewBox="0 0 60 19" preserveAspectRatio="none">
+                  <polygon points="9,1 51,1 59,18 1,18" fill="#fff"></polygon>
+                  <polyline points="1,18 9,1 51,1 59,18" fill="none" stroke="#333" stroke-width="2" stroke-linejoin="round"></polyline>
+                </svg>
+                <div class="daikeic-group">
+                  <div class="daikeirectangleL"></div>
+                  <div class="daikeirectangleR"></div>
+                </div>
+              </div>
+            </div>
+            <div class="box middle-box">
+              <div class="answer-row">
+                <div id="Q8answer1" class="answer-text"></div>
+                <div class="answer-rectangles">
+                  <div id="Q8answer1rectangleL" class="answer-rectangleL"></div>
+                  <div id="Q8answer1rectangleR" class="answer-rectangleR"></div>
+                </div>
+              </div>
+              <div class="answer-row">
+                <div id="Q8answer2" class="answer-text"></div>
+                <div class="answer-rectangles">
+                  <div id="Q8answer2rectangleL" class="answer-rectangleL"></div>
+                  <div id="Q8answer2rectangleR" class="answer-rectangleR"></div>
+                </div>
+              </div>
+              <div class="answer-row">
+                <div id="Q8answer3" class="answer-text"></div>
+                <div class="answer-rectangles">
+                  <div id="Q8answer3rectangleL" class="answer-rectangleL"></div>
+                  <div id="Q8answer3rectangleR" class="answer-rectangleR"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="box wide-bottom-box">
+
+          <div id="hint1" class="hint-column">
+            <div id="hint1-1" class="hint-row"></div>
+            <div id="hint1-2" class="hint-row"></div>
+            <div id="hint1-3" class="hint-row"></div>
+            <div id="hint1-4" class="hint-row"></div>
+            <div id="hint1-5" class="hint-row"></div>
+            <div id="hint1-6" class="hint-row"></div>
+            <div id="hint1-7" class="hint-row"></div>
+            <div id="hint1-8" class="hint-row"></div>
+          </div>
+
+          <div id="hint2" class="hint-column">
+            <div id="hint2-1" class="hint-row"></div>
+            <div id="hint2-2" class="hint-row"></div>
+            <div id="hint2-3" class="hint-row"></div>
+            <div id="hint2-4" class="hint-row"></div>
+            <div id="hint2-5" class="hint-row"></div>
+            <div id="hint2-6" class="hint-row"></div>
+            <div id="hint2-7" class="hint-row"></div>
+            <div id="hint2-8" class="hint-row"></div>
+          </div>
+
+          <div id="hint3" class="hint-column">
+            <div id="hint3-1" class="hint-row"></div>
+            <div id="hint3-2" class="hint-row"></div>
+            <div id="hint3-3" class="hint-row"></div>
+            <div id="hint3-4" class="hint-row"></div>
+            <div id="hint3-5" class="hint-row"></div>
+            <div id="hint3-6" class="hint-row"></div>
+            <div id="hint3-7" class="hint-row"></div>
+            <div id="hint3-8" class="hint-row"></div>
+          </div>
+
+          <div id="hint4" class="hint-column">
+            <div id="hint4-1" class="hint-row"></div>
+            <div id="hint4-2" class="hint-row"></div>
+            <div id="hint4-3" class="hint-row"></div>
+            <div id="hint4-4" class="hint-row"></div>
+            <div id="hint4-5" class="hint-row"></div>
+            <div id="hint4-6" class="hint-row"></div>
+            <div id="hint4-7" class="hint-row"></div>
+            <div id="hint4-8" class="hint-row"></div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<div id="topLeftNameTags" class="top-left-name-tags hidden"></div>
+
+<div id="hostSelectingPop" class="host-selecting-pop hidden">ホストが人数を選択中</div>
+
+<div id="seatPop" class="seat-pop hidden">
+  <div class="row"><label>席を選択</label><div id="seatTabs" class="tabs"></div></div>
+  <div class="row" style="justify-content:flex-end">
+    <button class="btn small ghost" id="btnSeatCancel">観戦</button>
+  </div>
+</div>
+
+<div id="kickDialog" class="dialog-backdrop hidden">
+  <div class="dialog-box" id="kickDialogBox">
+    <p id="kickMessage">既存のプレイヤーを追い出して、着席しますか？</p>
+    <div class="dialog-buttons">
+      <button class="btn ghost" id="btnKickNo">いいえ</button>
+      <button class="btn primary" id="btnKickYes">はい</button>
+    </div>
+  </div>
+</div>
+
+<button id="hostSettingsBtn" class="host-settings-btn" title="設定">⚙</button>
+
+<div id="startPop" class="start-pop hidden">
+  <div class="start-pop-header">
+    <div class="start-pop-title">ホスト設定</div>
+    <button id="btnStartPopClose" class="btn ghost" style="padding:2px 6px;font-size:12px;">×</button>
+  </div>
+  <div class="start-pop-main">
+    「リセット」で人数選択へ戻します。<br>
+    カード配布・カード表示はありません。
+  </div>
+  <div class="start-pop-actions">
+    <button id="btnResetRoom" class="btn ghost">リセット</button>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import {
+  getDatabase, ref, set, get, update, onValue, remove
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAMeKfMoHt9qOQ2VuUBpkrKuei7yGBbEi8",
+  authDomain: "cheesetheft-fd52f.firebaseapp.com",
+  databaseURL: "https://cheesetheft-fd52f-default-rtdb.firebaseio.com",
+  projectId: "cheesetheft-fd52f",
+  storageBucket: "cheesetheft-fd52f.firebasestorage.app",
+  messagingSenderId: "298688959395",
+  appId: "1:298688959395:web:6ac2c3eb214201f2020016",
+  measurementId: "G-HPDFTCLR8H"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getDatabase(app);
+
+const savedUserId = sessionStorage.getItem('bbUserId') || crypto.randomUUID();
+sessionStorage.setItem('bbUserId', savedUserId);
+
+const state = {
+  userId: savedUserId,
+  userName: null,
+  roomCode: null,
+  seatedTable: null,
+  isHost: false,
+  room: {}
+};
+
+const mainEl = document.getElementById('main');
+const joinBox = document.getElementById('joinBox');
+const inputName = document.getElementById('userName');
+const inputCode = document.getElementById('roomCode');
+const btnJoin = document.getElementById('btnJoin');
+const lobby = document.getElementById('lobby');
+const roomInfo = document.getElementById('roomInfo');
+const roomInfoLobby = document.getElementById('roomInfoLobby');
+const copyLinkBtn = document.getElementById('copyLinkBtn');
+
+const hostSelectingPop = document.getElementById('hostSelectingPop');
+
+const seatPop = document.getElementById('seatPop');
+const seatTabs = document.getElementById('seatTabs');
+const btnSeatCancel = document.getElementById('btnSeatCancel');
+const seatLabel = seatPop.querySelector('label');
+
+const topLeftNameTags = document.getElementById('topLeftNameTags');
+
+const kickDialog = document.getElementById('kickDialog');
+const kickMessage = document.getElementById('kickMessage');
+const btnKickYes = document.getElementById('btnKickYes');
+const btnKickNo = document.getElementById('btnKickNo');
+
+const hostSettingsBtn = document.getElementById('hostSettingsBtn');
+const startPop = document.getElementById('startPop');
+const btnStartPopClose = document.getElementById('btnStartPopClose');
+const btnResetRoom = document.getElementById('btnResetRoom');
+
+let pendingSeatIndexToSteal = null;
+let pendingSeatPlayerIdToSteal = null;
+let isRenderingSeatTabs = false;
+let latestPlayers = [];
+
+function generateRoomCode(length = 6){
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = '';
+  for(let i=0;i<length;i++) code += chars.charAt(Math.floor(Math.random()*chars.length));
+  return code;
+}
+
+async function restoreSeatFromDB(){
+  if (!state.roomCode) return;
+  const tablesRef = ref(db, `rooms/${state.roomCode}/tables`);
+  const snap = await get(tablesRef);
+  const data = snap.val() || {};
+  let mySeatIndex = null;
+
+  for (const [seatIndex, t] of Object.entries(data)) {
+    if (t && t.playerId === state.userId) {
+      mySeatIndex = Number(seatIndex);
+      break;
+    }
+  }
+  if (mySeatIndex !== null) state.seatedTable = mySeatIndex;
+}
+
+function refreshRoomLabels(){
+  if (!state.roomCode || !state.userName) return;
+  const label = state.isHost ? '（ホスト）' : '';
+  const infoText = ` ${state.roomCode},  ${state.userName}${label}`;
+  roomInfo.textContent = infoText;
+  roomInfoLobby.textContent = infoText;
+}
+
+function updateHostUI(){
+  refreshRoomLabels();
+  if (state.isHost){
+    hostSettingsBtn.classList.add('visible');
+  } else {
+    hostSettingsBtn.classList.remove('visible');
+    startPop.classList.add('hidden');
+  }
+}
+
+function subscribeRoom(){
+  const roomRef = ref(db, `rooms/${state.roomCode}`);
+  onValue(roomRef, snap => {
+    state.room = snap.val() || {};
+    const waiting = (!state.isHost && !state.room.maxPlayers);
+    hostSelectingPop.classList.toggle('hidden', !waiting);
+    syncSeatUI();
+  });
+}
+
+function subscribeHostState(){
+  const hostRef = ref(db, `rooms/${state.roomCode}/hostId`);
+  onValue(hostRef, snap => {
+    const hostId = snap.val();
+    state.isHost = (hostId === state.userId);
+    updateHostUI();
+    syncSeatUI();
+  });
+}
+
+const urlParams = new URLSearchParams(window.location.search);
+const roomFromUrl = urlParams.get('room');
+if(roomFromUrl) inputCode.value = roomFromUrl;
+
+btnJoin.addEventListener('click', async () => {
+  state.userName = inputName.value || '名無し';
+  state.roomCode = inputCode.value.trim() || generateRoomCode();
+
+  await set(ref(db, `rooms/${state.roomCode}/users/${state.userId}`), {
+    name: state.userName,
+    joinedAt: Date.now()
+  });
+
+  const roomRef = ref(db, `rooms/${state.roomCode}`);
+  const roomSnap = await get(roomRef);
+  const roomData = roomSnap.val();
+
+  if(!roomData || !roomData.hostId){
+    await update(roomRef, { hostId: state.userId });
+    state.isHost = true;
+  } else {
+    state.isHost = (roomData.hostId === state.userId);
+  }
+
+  updateHostUI();
+
+  mainEl.classList.remove('prejoin');
+  mainEl.classList.add('joined');
+
+  joinBox.classList.add('hidden');
+  lobby.classList.remove('hidden');
+  lobby.classList.add('entered');
+
+  await restoreSeatFromDB();
+
+  subscribeRoom();
+  subscribeHostState();
+  subscribePlayers();
+
+  syncSeatUI();
+});
+
+copyLinkBtn.addEventListener('click', async () => {
+  const url = `${location.origin}${location.pathname}?room=${state.roomCode || inputCode.value.trim()}`;
+  try {
+    await navigator.clipboard.writeText(url);
+    copyLinkBtn.classList.add('copied');
+    copyLinkBtn.textContent = 'COPIED';
+    if (state.roomCode) inputCode.value = state.roomCode;
+    setTimeout(()=>{
+      copyLinkBtn.classList.remove('copied');
+      copyLinkBtn.textContent='リンクコピー';
+    },1500);
+  } catch {
+    prompt('コピーできません。手動でコピーしてください', url);
+  }
+});
+
+async function syncSeatUI(){
+  if (!state.roomCode) return;
+
+  const maxPlayers = state.room.maxPlayers || null;
+
+  if (!state.isHost && !maxPlayers){
+    seatPop.classList.add('hidden');
+    return;
+  }
+  if (state.seatedTable !== null){
+    seatPop.classList.add('hidden');
+    return;
+  }
+  await renderSeatTabs();
+  seatPop.classList.remove('hidden');
+}
+
+async function renderSeatTabs(){
+  if (!state.roomCode) return;
+  if (isRenderingSeatTabs) return;
+  isRenderingSeatTabs = true;
+
+  try {
+    seatTabs.innerHTML = '';
+
+    const roomRef = ref(db, `rooms/${state.roomCode}`);
+    const roomSnap = await get(roomRef);
+    const roomData = roomSnap.val() || {};
+    const maxPlayers = roomData.maxPlayers || null;
+
+    if(state.isHost && !maxPlayers){
+      seatLabel.textContent = '人数を選択';
+      for(let i=2; i<=8; i++){
+        const tab = document.createElement('div');
+        tab.className = 'tab';
+        tab.textContent = i;
+
+        tab.onclick = async () => {
+          await update(roomRef, { maxPlayers: i });
+          const tRef = ref(db, `rooms/${state.roomCode}/tables/1`);
+          await set(tRef, { playerId: state.userId, playerName: state.userName });
+
+          state.seatedTable = 1;
+          seatPop.classList.add('hidden');
+          renderTopLeftNameTags(latestPlayers);
+        };
+        seatTabs.appendChild(tab);
+      }
+      return;
+    }
+
+    seatLabel.textContent = '席を選択';
+
+    const effectiveMax = maxPlayers || 8;
+    const tablesSnap = await get(ref(db, `rooms/${state.roomCode}/tables`));
+    const tables = tablesSnap.val() || {};
+
+    for(let i=1; i<=effectiveMax; i++){
+      const tab = document.createElement('div');
+      tab.className = 'tab';
+      tab.textContent = i;
+
+      const t = tables[i];
+      if(t && t.playerId) tab.classList.add('disabled');
+
+      tab.onclick = async () => {
+        if(tab.classList.contains('disabled')) return;
+        const tRef = ref(db, `rooms/${state.roomCode}/tables/${i}`);
+        await set(tRef, { playerId: state.userId, playerName: state.userName });
+        state.seatedTable = i;
+        seatPop.classList.add('hidden');
+        renderTopLeftNameTags(latestPlayers);
+      };
+      seatTabs.appendChild(tab);
+    }
+  } finally {
+    isRenderingSeatTabs = false;
+  }
+}
+
+btnSeatCancel.onclick = () => {
+  seatPop.classList.add('hidden');
+  state.seatedTable = null;
+  renderTopLeftNameTags(latestPlayers);
+};
+
+function subscribePlayers(){
+  const tablesRef = ref(db, `rooms/${state.roomCode}/tables`);
+  onValue(tablesRef, async snap => {
+    const data = snap.val() || {};
+    const players = Object.entries(data)
+      .map(([seatIndex, t]) => (t && t.playerId ? {
+        id: t.playerId,
+        name: t.playerName || '名無し',
+        seatIndex: Number(seatIndex)
+      } : null))
+      .filter(Boolean)
+      .sort((a,b) => a.seatIndex - b.seatIndex);
+
+    latestPlayers = players;
+
+    const mySeat = players.find(p => p.id === state.userId);
+    if (mySeat && state.seatedTable === null) {
+      state.seatedTable = mySeat.seatIndex;
+      seatPop.classList.add('hidden');
+    }
+
+    const meStillSeated = players.some(p => p.id === state.userId);
+    if (!meStillSeated && state.seatedTable !== null) {
+      state.seatedTable = null;
+    }
+
+    await syncSeatUI();
+    renderTopLeftNameTags(players);
+  });
+}
+
+function renderTopLeftNameTags(players){
+  topLeftNameTags.innerHTML = '';
+
+  if (state.seatedTable === null || !players.length) {
+    topLeftNameTags.classList.add('hidden');
+    return;
+  }
+
+  players.forEach(p => {
+    const tag = document.createElement('div');
+    tag.className = 'top-left-name-tag' + (p.id === state.userId ? ' me' : '');
+    tag.textContent = p.name;
+
+    tag.onclick = () => {
+      if (p.id === state.userId) return;
+      if (!state.roomCode) return;
+      if (state.seatedTable !== null) return;
+
+      pendingSeatIndexToSteal = p.seatIndex;
+      pendingSeatPlayerIdToSteal = p.id;
+      kickMessage.textContent = `「${p.name}」を追い出して、この席に着席しますか？`;
+      kickDialog.classList.remove('hidden');
+    };
+
+    topLeftNameTags.appendChild(tag);
+  });
+
+  topLeftNameTags.classList.remove('hidden');
+}
+
+kickDialog.addEventListener('click', (e) => {
+  if (e.target === kickDialog) {
+    kickDialog.classList.add('hidden');
+    pendingSeatIndexToSteal = null;
+    pendingSeatPlayerIdToSteal = null;
+  }
+});
+
+btnKickNo.addEventListener('click', (e) => {
+  e.stopPropagation();
+  kickDialog.classList.add('hidden');
+  pendingSeatIndexToSteal = null;
+  pendingSeatPlayerIdToSteal = null;
+});
+
+btnKickYes.addEventListener('click', async (e) => {
+  e.stopPropagation();
+  if (pendingSeatIndexToSteal == null || !state.roomCode) {
+    kickDialog.classList.add('hidden');
+    return;
+  }
+
+  const seatIndex = pendingSeatIndexToSteal;
+  const roomRef = ref(db, `rooms/${state.roomCode}`);
+  const roomSnap = await get(roomRef);
+  const roomData = roomSnap.val() || {};
+
+  const tRef = ref(db, `rooms/${state.roomCode}/tables/${seatIndex}`);
+  await set(tRef, { playerId: state.userId, playerName: state.userName || '名無し' });
+
+  if (roomData.hostId && pendingSeatPlayerIdToSteal && roomData.hostId === pendingSeatPlayerIdToSteal) {
+    await update(roomRef, { hostId: state.userId });
+  }
+
+  state.seatedTable = seatIndex;
+
+  kickDialog.classList.add('hidden');
+  pendingSeatIndexToSteal = null;
+  pendingSeatPlayerIdToSteal = null;
+
+  seatPop.classList.add('hidden');
+  renderTopLeftNameTags(latestPlayers);
+});
+
+hostSettingsBtn.addEventListener('click', () => {
+  if (!state.isHost) return;
+  startPop.classList.toggle('hidden');
+});
+
+btnStartPopClose.addEventListener('click', () => {
+  startPop.classList.add('hidden');
+});
+
+btnResetRoom.addEventListener('click', async () => {
+  if (!state.isHost || !state.roomCode) return;
+
+  const base = `rooms/${state.roomCode}`;
+  await Promise.all([
+    remove(ref(db, `${base}/maxPlayers`)),
+    remove(ref(db, `${base}/tables`))
+  ]);
+
+  state.seatedTable = null;
+  startPop.classList.add('hidden');
+  topLeftNameTags.classList.add('hidden');
+  await syncSeatUI();
+});
+</script>
+
+</body>
+</html>
