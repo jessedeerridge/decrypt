@@ -56,28 +56,16 @@
   }
   .host-selecting-pop.hidden{display:none;}
 
-  .top-left-name-tags{
-    position:fixed;
-    left:10px;
-    top:70px;
-    z-index:230;
-    display:flex;
-    flex-direction:column;
-    align-items:flex-start;
-    gap:6px;
-    pointer-events:auto;
-  }
-  .top-left-name-tags.hidden{display:none;}
-  .top-left-name-tag{
-    padding:4px 8px;
-    border-radius:999px;
-    background:#f8f8f8;
-    border:1px solid #ddd;
-    font-size:12px;
-    white-space:nowrap;
-    box-shadow:0 4px 10px rgba(0,0,0,.10);
-  }
-  .top-left-name-tag.me{background:#111;color:#fff;border-color:#111;}
+  .team-panel-wrap{position:fixed;left:10px;right:10px;top:70px;z-index:230;display:flex;justify-content:space-between;gap:10px;pointer-events:none;}
+  .team-panel-wrap.hidden{display:none;}
+  .team-panel{display:flex;align-items:flex-start;gap:6px;max-width:48%;flex-wrap:wrap;pointer-events:auto;}
+  .team-label{font-size:12px;font-weight:700;padding:3px 6px;border-radius:6px;border:1px solid #bbb;background:#fff;}
+  .team-label.black{background:#111;color:#fff;border-color:#111;}
+  .top-left-name-tag{padding:4px 8px;border-radius:999px;background:#e5e7eb;border:1px solid #cbd5e1;font-size:12px;white-space:nowrap;box-shadow:0 4px 10px rgba(0,0,0,.10);}
+  .top-left-name-tag.white{background:#fff;color:#111;border-color:#bbb;}
+  .top-left-name-tag.black{background:#111;color:#fff;border-color:#111;}
+  .team-sheet-black .table,.team-sheet-black .box,.team-sheet-black .hint-column{background:#111;color:#fff;border-color:#eee;}
+  .team-sheet-black .hint-row{border-bottom-color:#666;}
 
   .dialog-backdrop{
     position:fixed;inset:0;background:rgba(0,0,0,.35);
@@ -810,7 +798,10 @@
   </div>
 </main>
 
-<div id="topLeftNameTags" class="top-left-name-tags hidden"></div>
+<div id="teamPanelWrap" class="team-panel-wrap hidden">
+  <div id="whiteTeamPanel" class="team-panel"><div class="team-label">白チーム</div></div>
+  <div id="blackTeamPanel" class="team-panel"><div class="team-label black">黒チーム</div></div>
+</div>
 
 <div id="hostSelectingPop" class="host-selecting-pop hidden">ホストが人数を選択中</div>
 
@@ -839,10 +830,11 @@
     <button id="btnStartPopClose" class="btn ghost" style="padding:2px 6px;font-size:12px;">×</button>
   </div>
   <div class="start-pop-main">
-    「リセット」で人数選択へ戻します。<br>
-    カード配布・カード表示はありません。
+    スタートでチーム分けとキーワード配布を行います。<br>
+    リセットで初期状態へ戻します。
   </div>
   <div class="start-pop-actions">
+    <button id="btnStartGame" class="btn primary">スタート</button>
     <button id="btnResetRoom" class="btn ghost">リセット</button>
   </div>
 </div>
@@ -896,7 +888,9 @@ const seatTabs = document.getElementById('seatTabs');
 const btnSeatCancel = document.getElementById('btnSeatCancel');
 const seatLabel = seatPop.querySelector('label');
 
-const topLeftNameTags = document.getElementById('topLeftNameTags');
+const teamPanelWrap = document.getElementById('teamPanelWrap');
+const whiteTeamPanel = document.getElementById('whiteTeamPanel');
+const blackTeamPanel = document.getElementById('blackTeamPanel');
 
 const kickDialog = document.getElementById('kickDialog');
 const kickMessage = document.getElementById('kickMessage');
@@ -906,12 +900,31 @@ const btnKickNo = document.getElementById('btnKickNo');
 const hostSettingsBtn = document.getElementById('hostSettingsBtn');
 const startPop = document.getElementById('startPop');
 const btnStartPopClose = document.getElementById('btnStartPopClose');
+const btnStartGame = document.getElementById('btnStartGame');
 const btnResetRoom = document.getElementById('btnResetRoom');
 
 let pendingSeatIndexToSteal = null;
 let pendingSeatPlayerIdToSteal = null;
 let isRenderingSeatTabs = false;
 let latestPlayers = [];
+
+const WORD_POOL = ["いちご","こたつ","冷蔵庫","エアコン","トイレ","ペットボトル","電卓","鏡","網戸","ジーンズ","コーラ","洗濯機","スマホ","割りばし"];
+function pickUniqueWords(pool, count){
+  const arr=[...pool];
+  for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; }
+  return arr.slice(0,count);
+}
+function applyKeywords(words=[]){
+  [1,2,3,4].forEach((n,idx)=>{
+    const el=document.getElementById(`keywordbox${n}`);
+    if(el) el.textContent = words[idx] || '';
+  });
+}
+function applyTeamSheetClass(team){
+  lobby.classList.remove('team-sheet-black');
+  if(team==='black') lobby.classList.add('team-sheet-black');
+}
+
 
 function generateRoomCode(length = 6){
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -960,6 +973,9 @@ function subscribeRoom(){
     state.room = snap.val() || {};
     const waiting = (!state.isHost && !state.room.maxPlayers);
     hostSelectingPop.classList.toggle('hidden', !waiting);
+    const myTeam = state.room?.game?.teams?.[state.userId] || null;
+    applyTeamSheetClass(myTeam);
+    applyKeywords((myTeam && state.room?.game?.keywords?.[myTeam]) || []);
     syncSeatUI();
   });
 }
@@ -970,6 +986,9 @@ function subscribeHostState(){
     const hostId = snap.val();
     state.isHost = (hostId === state.userId);
     updateHostUI();
+    const myTeam = state.room?.game?.teams?.[state.userId] || null;
+    applyTeamSheetClass(myTeam);
+    applyKeywords((myTeam && state.room?.game?.keywords?.[myTeam]) || []);
     syncSeatUI();
   });
 }
@@ -1079,7 +1098,7 @@ async function renderSeatTabs(){
 
           state.seatedTable = 1;
           seatPop.classList.add('hidden');
-          renderTopLeftNameTags(latestPlayers);
+          renderTeamPanels(latestPlayers);
         };
         seatTabs.appendChild(tab);
       }
@@ -1106,7 +1125,7 @@ async function renderSeatTabs(){
         await set(tRef, { playerId: state.userId, playerName: state.userName });
         state.seatedTable = i;
         seatPop.classList.add('hidden');
-        renderTopLeftNameTags(latestPlayers);
+        renderTeamPanels(latestPlayers);
       };
       seatTabs.appendChild(tab);
     }
@@ -1118,7 +1137,7 @@ async function renderSeatTabs(){
 btnSeatCancel.onclick = () => {
   seatPop.classList.add('hidden');
   state.seatedTable = null;
-  renderTopLeftNameTags(latestPlayers);
+  renderTeamPanels(latestPlayers);
 };
 
 function subscribePlayers(){
@@ -1148,38 +1167,37 @@ function subscribePlayers(){
     }
 
     await syncSeatUI();
-    renderTopLeftNameTags(players);
+    renderTeamPanels(players);
   });
 }
 
-function renderTopLeftNameTags(players){
-  topLeftNameTags.innerHTML = '';
+function renderTeamPanels(players){
+  whiteTeamPanel.innerHTML = '<div class="team-label">白チーム</div>';
+  blackTeamPanel.innerHTML = '<div class="team-label black">黒チーム</div>';
 
   if (!players.length) {
-    topLeftNameTags.classList.add('hidden');
+    teamPanelWrap.classList.add('hidden');
     return;
   }
 
   players.forEach(p => {
+    const team = state.room?.game?.teams?.[p.id] || null;
     const tag = document.createElement('div');
-    tag.className = 'top-left-name-tag' + (p.id === state.userId ? ' me' : '');
+    tag.className = 'top-left-name-tag ' + (team || '');
     tag.textContent = p.name;
 
     tag.onclick = () => {
-      if (p.id === state.userId) return;
-      if (!state.roomCode) return;
-      if (state.seatedTable !== null) return;
-
+      if (p.id === state.userId || !state.roomCode || state.seatedTable !== null) return;
       pendingSeatIndexToSteal = p.seatIndex;
       pendingSeatPlayerIdToSteal = p.id;
       kickMessage.textContent = `「${p.name}」を追い出して、この席に着席しますか？`;
       kickDialog.classList.remove('hidden');
     };
 
-    topLeftNameTags.appendChild(tag);
+    (team === 'black' ? blackTeamPanel : whiteTeamPanel).appendChild(tag);
   });
 
-  topLeftNameTags.classList.remove('hidden');
+  teamPanelWrap.classList.remove('hidden');
 }
 
 
@@ -1243,7 +1261,7 @@ btnKickYes.addEventListener('click', async (e) => {
   pendingSeatPlayerIdToSteal = null;
 
   seatPop.classList.add('hidden');
-  renderTopLeftNameTags(latestPlayers);
+  renderTeamPanels(latestPlayers);
 });
 
 hostSettingsBtn.addEventListener('click', () => {
@@ -1255,18 +1273,37 @@ btnStartPopClose.addEventListener('click', () => {
   startPop.classList.add('hidden');
 });
 
+btnStartGame.addEventListener('click', async () => {
+  if (!state.isHost || !state.roomCode) return;
+  const players = [...latestPlayers];
+  if (players.length < 2) return;
+  for(let i=players.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [players[i],players[j]]=[players[j],players[i]]; }
+  const teams = {};
+  const half = Math.ceil(players.length/2);
+  players.forEach((p, idx)=> teams[p.id] = idx < half ? 'white' : 'black');
+  const words = pickUniqueWords(WORD_POOL, 8);
+  const payload = {
+    startedAt: Date.now(),
+    teams,
+    keywords: { white: words.slice(0,4), black: words.slice(4,8) }
+  };
+  await set(ref(db, `rooms/${state.roomCode}/game`), payload);
+  startPop.classList.add('hidden');
+});
+
 btnResetRoom.addEventListener('click', async () => {
   if (!state.isHost || !state.roomCode) return;
 
   const base = `rooms/${state.roomCode}`;
   await Promise.all([
     remove(ref(db, `${base}/maxPlayers`)),
-    remove(ref(db, `${base}/tables`))
+    remove(ref(db, `${base}/tables`)),
+    remove(ref(db, `${base}/game`))
   ]);
 
   state.seatedTable = null;
   startPop.classList.add('hidden');
-  topLeftNameTags.classList.add('hidden');
+  teamPanelWrap.classList.add('hidden');
   await syncSeatUI();
   requestAnimationFrame(fitDiagramToViewport);
 });
