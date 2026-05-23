@@ -115,8 +115,9 @@
     display:flex;
     flex-direction:column;
     align-items:center;
-    justify-content:flex-start;
-    min-height:calc(100vh - 60px);
+    justify-content:center;
+    height:100%;
+    box-sizing:border-box;
   }
 
   /* ===== ここから導入図形 ===== */
@@ -132,7 +133,7 @@
 
   .diagram-viewport {
     width: 100%;
-    min-height: calc(100vh - 80px);
+    height: 100%;
     display: grid;
     place-items: center;
     overflow: hidden;
@@ -377,7 +378,7 @@
     <p>ここにテーブルや情報が表示されます。</p>
 
     <div class="diagram-viewport">
-    <div class="wrapper">
+      <div class="wrapper">
 
       <div class="table top-table">
         <div class="top-row">
@@ -804,8 +805,8 @@
 
       </div>
 
+      </div>
     </div>
-  </div>
   </div>
 </main>
 
