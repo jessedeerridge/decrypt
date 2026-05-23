@@ -1179,7 +1179,16 @@ function shuffle(arr){
   return a;
 }
 
-function renderKeywords(words=[]){
+function renderKeywords(keywordState = []){
+  let words = [];
+  if (Array.isArray(keywordState)) {
+    words = keywordState;
+  } else {
+    const teams = state.room.teams || {};
+    const myTeam = teams[state.userId];
+    words = (myTeam && Array.isArray(keywordState[myTeam])) ? keywordState[myTeam] : [];
+  }
+
   [1,2,3,4].forEach((n,idx)=>{
     const el=document.getElementById(`keywordbox${n}`);
     if(el) el.textContent = words[idx] || '';
@@ -1350,7 +1359,11 @@ btnGameStart.addEventListener('click', async () => {
   const half=Math.ceil(shuffled.length/2);
   const teams={};
   shuffled.forEach((p,idx)=>{ teams[p.id]= idx<half ? 'white':'black'; });
-  const keywords=shuffle(keywordPool).slice(0,4);
+  const picked = shuffle(keywordPool).slice(0,8);
+  const keywords = {
+    white: picked.slice(0,4),
+    black: picked.slice(4,8)
+  };
   await update(ref(db, `rooms/${state.roomCode}`), { started:true, teams, keywords });
   startPop.classList.add('hidden');
 });
