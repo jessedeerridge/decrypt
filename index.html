@@ -374,6 +374,24 @@
     border-bottom: none;
   }
 
+  .hint-head {
+    position: absolute;
+    top: -22px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .hint-key-icon {
+    display:inline-block;
+    transform: rotate(90deg);
+    line-height: 1;
+  }
+
   .wrapper.team-black .table {background:#000;}
   .wrapper.team-black .box,
   .wrapper.team-black .middle-box,
@@ -786,6 +804,7 @@
         <div class="box wide-bottom-box">
 
           <div id="hint1" class="hint-column">
+            <div class="hint-head"><span class="hint-key-icon">🔑</span><span>1</span></div>
             <div id="hint1-1" class="hint-row"></div>
             <div id="hint1-2" class="hint-row"></div>
             <div id="hint1-3" class="hint-row"></div>
@@ -797,6 +816,7 @@
           </div>
 
           <div id="hint2" class="hint-column">
+            <div class="hint-head"><span class="hint-key-icon">🔑</span><span>2</span></div>
             <div id="hint2-1" class="hint-row"></div>
             <div id="hint2-2" class="hint-row"></div>
             <div id="hint2-3" class="hint-row"></div>
@@ -808,6 +828,7 @@
           </div>
 
           <div id="hint3" class="hint-column">
+            <div class="hint-head"><span class="hint-key-icon">🔑</span><span>3</span></div>
             <div id="hint3-1" class="hint-row"></div>
             <div id="hint3-2" class="hint-row"></div>
             <div id="hint3-3" class="hint-row"></div>
@@ -819,6 +840,7 @@
           </div>
 
           <div id="hint4" class="hint-column">
+            <div class="hint-head"><span class="hint-key-icon">🔑</span><span>4</span></div>
             <div id="hint4-1" class="hint-row"></div>
             <div id="hint4-2" class="hint-row"></div>
             <div id="hint4-3" class="hint-row"></div>
