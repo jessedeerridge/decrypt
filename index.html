@@ -130,8 +130,18 @@
     --answer-rectangle-adjust: 2px;
   }
 
+  .diagram-viewport {
+    width: 100%;
+    min-height: calc(100vh - 80px);
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+  }
+
   .wrapper {
     width: 400px;
+    transform-origin: top left;
+    will-change: transform;
   }
 
   .table {
@@ -366,6 +376,7 @@
     <div id="roomInfoLobby" style="margin-bottom:8px;"></div>
     <p>ここにテーブルや情報が表示されます。</p>
 
+    <div class="diagram-viewport">
     <div class="wrapper">
 
       <div class="table top-table">
@@ -795,6 +806,7 @@
 
     </div>
   </div>
+  </div>
 </main>
 
 <div id="topLeftNameTags" class="top-left-name-tags hidden"></div>
@@ -965,6 +977,8 @@ const urlParams = new URLSearchParams(window.location.search);
 const roomFromUrl = urlParams.get('room');
 if(roomFromUrl) inputCode.value = roomFromUrl;
 
+requestAnimationFrame(fitDiagramToViewport);
+
 btnJoin.addEventListener('click', async () => {
   state.userName = inputName.value || '名無し';
   state.roomCode = inputCode.value.trim() || generateRoomCode();
@@ -1001,6 +1015,7 @@ btnJoin.addEventListener('click', async () => {
   subscribePlayers();
 
   syncSeatUI();
+  requestAnimationFrame(fitDiagramToViewport);
 });
 
 copyLinkBtn.addEventListener('click', async () => {
@@ -1139,7 +1154,7 @@ function subscribePlayers(){
 function renderTopLeftNameTags(players){
   topLeftNameTags.innerHTML = '';
 
-  if (state.seatedTable === null || !players.length) {
+  if (!players.length) {
     topLeftNameTags.classList.add('hidden');
     return;
   }
@@ -1165,6 +1180,26 @@ function renderTopLeftNameTags(players){
 
   topLeftNameTags.classList.remove('hidden');
 }
+
+
+function fitDiagramToViewport(){
+  const viewport = document.querySelector('.diagram-viewport');
+  const wrapper = viewport?.querySelector('.wrapper');
+  if (!viewport || !wrapper) return;
+
+  wrapper.style.transform = 'none';
+  const baseWidth = wrapper.offsetWidth;
+  const baseHeight = wrapper.offsetHeight;
+  if (!baseWidth || !baseHeight) return;
+
+  const maxWidth = viewport.clientWidth;
+  const maxHeight = viewport.clientHeight;
+  const scale = Math.min(maxWidth / baseWidth, maxHeight / baseHeight);
+
+  wrapper.style.transform = `scale(${scale})`;
+}
+
+window.addEventListener('resize', fitDiagramToViewport);
 
 kickDialog.addEventListener('click', (e) => {
   if (e.target === kickDialog) {
@@ -1232,6 +1267,7 @@ btnResetRoom.addEventListener('click', async () => {
   startPop.classList.add('hidden');
   topLeftNameTags.classList.add('hidden');
   await syncSeatUI();
+  requestAnimationFrame(fitDiagramToViewport);
 });
 </script>
 
