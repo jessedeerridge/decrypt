@@ -84,6 +84,7 @@
     pointer-events:auto;
   }
   .top-left-name-tags.hidden{display:none;}
+  .team-tags{position:static;left:auto;top:auto;z-index:auto;pointer-events:none;}
   .top-left-name-tag{
     pointer-events:auto;
     padding:4px 8px;
@@ -94,8 +95,7 @@
     white-space:nowrap;
     box-shadow:0 4px 10px rgba(0,0,0,.10);
   }
-  .top-left-name-tag.me{background:#111;color:#fff;border-color:#111;}
-  .top-left-name-tag.white{background:#fff;color:#111;border-color:#111;}
+    .top-left-name-tag.white{background:#fff;color:#111;border-color:#111;}
   .top-left-name-tag.black{background:#111;color:#fff;border-color:#111;}
   .keywordbox{display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;}
   .team-black main, main.team-black{}
@@ -841,11 +841,11 @@
 <div id="teamPanels" class="team-panels hidden">
   <div class="team-panel">
     <div class="team-title">白チーム</div>
-    <div id="whiteTeamTags" class="top-left-name-tags"></div>
+    <div id="whiteTeamTags" class="top-left-name-tags team-tags"></div>
   </div>
   <div class="team-panel right">
     <div class="team-title">黒チーム</div>
-    <div id="blackTeamTags" class="top-left-name-tags"></div>
+    <div id="blackTeamTags" class="top-left-name-tags team-tags"></div>
   </div>
 </div>
 <div id="topLeftNameTags" class="top-left-name-tags hidden"></div>
@@ -1193,7 +1193,7 @@ function renderTeams(players){
     const team=teams[p.id];
     if(!team) return;
     const tag=document.createElement('div');
-    tag.className=`top-left-name-tag ${team}` + (p.id===state.userId?' me':'');
+    tag.className=`top-left-name-tag ${team}`;
     tag.textContent=p.name;
     (team==='white'?whiteTeamTags:blackTeamTags).appendChild(tag);
   });
@@ -1247,8 +1247,8 @@ function renderTopLeftNameTags(players){
 
   players.forEach(p => {
     const tag = document.createElement('div');
-    tag.className = 'top-left-name-tag' + (p.id === state.userId ? ' me' : '');
-    if(p.id !== state.userId) tag.style.background = '#e5e7eb';
+    tag.className = 'top-left-name-tag';
+    tag.style.background = '#e5e7eb';
     tag.textContent = p.name;
 
     tag.onclick = () => {
