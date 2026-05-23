@@ -56,6 +56,22 @@
   }
   .host-selecting-pop.hidden{display:none;}
 
+  .team-panels{
+    position:fixed;
+    top:70px;
+    left:10px;
+    right:10px;
+    z-index:230;
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    pointer-events:none;
+  }
+  .team-panels.hidden{display:none;}
+  .team-panel{display:flex;flex-direction:column;gap:6px;align-items:flex-start;max-width:48%;}
+  .team-panel.right{align-items:flex-end;}
+  .team-title{font-size:12px;font-weight:700;}
+
   .top-left-name-tags{
     position:fixed;
     left:10px;
@@ -68,7 +84,9 @@
     pointer-events:auto;
   }
   .top-left-name-tags.hidden{display:none;}
+  .team-tags{position:static;left:auto;top:auto;z-index:auto;pointer-events:none;}
   .top-left-name-tag{
+    pointer-events:auto;
     padding:4px 8px;
     border-radius:999px;
     background:#f8f8f8;
@@ -77,7 +95,10 @@
     white-space:nowrap;
     box-shadow:0 4px 10px rgba(0,0,0,.10);
   }
-  .top-left-name-tag.me{background:#111;color:#fff;border-color:#111;}
+    .top-left-name-tag.white{background:#fff;color:#111;border-color:#111;}
+  .top-left-name-tag.black{background:#111;color:#fff;border-color:#111;}
+  .keywordbox{display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;}
+  .team-black main, main.team-black{}
 
   .dialog-backdrop{
     position:fixed;inset:0;background:rgba(0,0,0,.35);
@@ -352,6 +373,52 @@
   .hint-row:last-child {
     border-bottom: none;
   }
+
+  .hint-head {
+    position: absolute;
+    top: -1px;
+    left: 6px;
+    width: 68px;
+    height: 20px;
+    transform: translateY(-100%);
+  }
+  .hint-head svg.hint-head-bg{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    display:block;
+  }
+  .hint-head-content{
+    position:relative;
+    z-index:1;
+    width:100%;
+    height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:4px;
+    font-size:12px;
+    font-weight:700;
+    line-height:1;
+  }
+  .hint-key-icon {
+    width: 18px;
+    height: 10px;
+    display: inline-block;
+  }
+  .hint-key-icon svg{
+    width:100%;
+    height:100%;
+    display:block;
+  }
+
+  .wrapper.team-black .table {background:#000;}
+  .wrapper.team-black .box,
+  .wrapper.team-black .middle-box,
+  .wrapper.team-black .wide-bottom-box,
+  .wrapper.team-black .hint-column,
+  .wrapper.team-black .keywordbox{background:#fff;}
   /* ===== ここまで導入図形 ===== */
 </style>
 </head>
@@ -758,6 +825,7 @@
         <div class="box wide-bottom-box">
 
           <div id="hint1" class="hint-column">
+            <div class="hint-head"><svg class="hint-head-bg" viewBox="0 0 68 20" preserveAspectRatio="none"><polygon points="9,1 59,1 67,19 1,19" fill="#fff"></polygon><polyline points="1,19 9,1 59,1 67,19" fill="none" stroke="#333" stroke-width="2" stroke-linejoin="round"></polyline></svg><div class="hint-head-content"><span class="hint-key-icon" aria-hidden="true"><svg viewBox="0 0 36 20" preserveAspectRatio="xMidYMid meet"><circle cx="8" cy="10" r="6" fill="none" stroke="#333" stroke-width="2.5"></circle><circle cx="8" cy="10" r="2" fill="#fff"></circle><path d="M14 10 H28 M22 10 V14 M26 10 V13" fill="none" stroke="#333" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><span>1</span></div></div>
             <div id="hint1-1" class="hint-row"></div>
             <div id="hint1-2" class="hint-row"></div>
             <div id="hint1-3" class="hint-row"></div>
@@ -769,6 +837,7 @@
           </div>
 
           <div id="hint2" class="hint-column">
+            <div class="hint-head"><svg class="hint-head-bg" viewBox="0 0 68 20" preserveAspectRatio="none"><polygon points="9,1 59,1 67,19 1,19" fill="#fff"></polygon><polyline points="1,19 9,1 59,1 67,19" fill="none" stroke="#333" stroke-width="2" stroke-linejoin="round"></polyline></svg><div class="hint-head-content"><span class="hint-key-icon" aria-hidden="true"><svg viewBox="0 0 36 20" preserveAspectRatio="xMidYMid meet"><circle cx="8" cy="10" r="6" fill="none" stroke="#333" stroke-width="2.5"></circle><circle cx="8" cy="10" r="2" fill="#fff"></circle><path d="M14 10 H28 M22 10 V14 M26 10 V13" fill="none" stroke="#333" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><span>2</span></div></div>
             <div id="hint2-1" class="hint-row"></div>
             <div id="hint2-2" class="hint-row"></div>
             <div id="hint2-3" class="hint-row"></div>
@@ -780,6 +849,7 @@
           </div>
 
           <div id="hint3" class="hint-column">
+            <div class="hint-head"><svg class="hint-head-bg" viewBox="0 0 68 20" preserveAspectRatio="none"><polygon points="9,1 59,1 67,19 1,19" fill="#fff"></polygon><polyline points="1,19 9,1 59,1 67,19" fill="none" stroke="#333" stroke-width="2" stroke-linejoin="round"></polyline></svg><div class="hint-head-content"><span class="hint-key-icon" aria-hidden="true"><svg viewBox="0 0 36 20" preserveAspectRatio="xMidYMid meet"><circle cx="8" cy="10" r="6" fill="none" stroke="#333" stroke-width="2.5"></circle><circle cx="8" cy="10" r="2" fill="#fff"></circle><path d="M14 10 H28 M22 10 V14 M26 10 V13" fill="none" stroke="#333" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><span>3</span></div></div>
             <div id="hint3-1" class="hint-row"></div>
             <div id="hint3-2" class="hint-row"></div>
             <div id="hint3-3" class="hint-row"></div>
@@ -791,6 +861,7 @@
           </div>
 
           <div id="hint4" class="hint-column">
+            <div class="hint-head"><svg class="hint-head-bg" viewBox="0 0 68 20" preserveAspectRatio="none"><polygon points="9,1 59,1 67,19 1,19" fill="#fff"></polygon><polyline points="1,19 9,1 59,1 67,19" fill="none" stroke="#333" stroke-width="2" stroke-linejoin="round"></polyline></svg><div class="hint-head-content"><span class="hint-key-icon" aria-hidden="true"><svg viewBox="0 0 36 20" preserveAspectRatio="xMidYMid meet"><circle cx="8" cy="10" r="6" fill="none" stroke="#333" stroke-width="2.5"></circle><circle cx="8" cy="10" r="2" fill="#fff"></circle><path d="M14 10 H28 M22 10 V14 M26 10 V13" fill="none" stroke="#333" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><span>4</span></div></div>
             <div id="hint4-1" class="hint-row"></div>
             <div id="hint4-2" class="hint-row"></div>
             <div id="hint4-3" class="hint-row"></div>
@@ -810,6 +881,16 @@
   </div>
 </main>
 
+<div id="teamPanels" class="team-panels hidden">
+  <div class="team-panel">
+    <div class="team-title">白チーム</div>
+    <div id="whiteTeamTags" class="top-left-name-tags team-tags"></div>
+  </div>
+  <div class="team-panel right">
+    <div class="team-title">黒チーム</div>
+    <div id="blackTeamTags" class="top-left-name-tags team-tags"></div>
+  </div>
+</div>
 <div id="topLeftNameTags" class="top-left-name-tags hidden"></div>
 
 <div id="hostSelectingPop" class="host-selecting-pop hidden">ホストが人数を選択中</div>
@@ -840,9 +921,10 @@
   </div>
   <div class="start-pop-main">
     「リセット」で人数選択へ戻します。<br>
-    カード配布・カード表示はありません。
+    スタートで2チームに分け、4ワードを配布します。
   </div>
   <div class="start-pop-actions">
+    <button id="btnGameStart" class="btn primary">スタート</button>
     <button id="btnResetRoom" class="btn ghost">リセット</button>
   </div>
 </div>
@@ -897,6 +979,9 @@ const btnSeatCancel = document.getElementById('btnSeatCancel');
 const seatLabel = seatPop.querySelector('label');
 
 const topLeftNameTags = document.getElementById('topLeftNameTags');
+const teamPanels = document.getElementById('teamPanels');
+const whiteTeamTags = document.getElementById('whiteTeamTags');
+const blackTeamTags = document.getElementById('blackTeamTags');
 
 const kickDialog = document.getElementById('kickDialog');
 const kickMessage = document.getElementById('kickMessage');
@@ -907,6 +992,8 @@ const hostSettingsBtn = document.getElementById('hostSettingsBtn');
 const startPop = document.getElementById('startPop');
 const btnStartPopClose = document.getElementById('btnStartPopClose');
 const btnResetRoom = document.getElementById('btnResetRoom');
+const btnGameStart = document.getElementById('btnGameStart');
+const keywordPool = ['いちご','こたつ','冷蔵庫','エアコン','トイレ','ペットボトル','電卓','鏡','網戸','ジーンズ','コーラ','洗濯機','スマホ','割りばし'];
 
 let pendingSeatIndexToSteal = null;
 let pendingSeatPlayerIdToSteal = null;
@@ -961,6 +1048,8 @@ function subscribeRoom(){
     const waiting = (!state.isHost && !state.room.maxPlayers);
     hostSelectingPop.classList.toggle('hidden', !waiting);
     syncSeatUI();
+    renderKeywords(state.room.keywords || []);
+    renderTeams(latestPlayers);
   });
 }
 
@@ -971,6 +1060,8 @@ function subscribeHostState(){
     state.isHost = (hostId === state.userId);
     updateHostUI();
     syncSeatUI();
+    renderKeywords(state.room.keywords || []);
+    renderTeams(latestPlayers);
   });
 }
 
@@ -1121,6 +1212,51 @@ btnSeatCancel.onclick = () => {
   renderTopLeftNameTags(latestPlayers);
 };
 
+
+function shuffle(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function renderKeywords(keywordState = []){
+  let words = [];
+  if (Array.isArray(keywordState)) {
+    words = keywordState;
+  } else {
+    const teams = state.room.teams || {};
+    const myTeam = teams[state.userId];
+    words = (myTeam && Array.isArray(keywordState[myTeam])) ? keywordState[myTeam] : [];
+  }
+
+  [1,2,3,4].forEach((n,idx)=>{
+    const el=document.getElementById(`keywordbox${n}`);
+    if(el) el.textContent = words[idx] || '';
+  });
+}
+
+function renderTeams(players){
+  const teams=state.room.teams||{};
+  whiteTeamTags.innerHTML=''; blackTeamTags.innerHTML='';
+  players.forEach(p=>{
+    const team=teams[p.id];
+    if(!team) return;
+    const tag=document.createElement('div');
+    tag.className=`top-left-name-tag ${team}`;
+    tag.textContent=p.name;
+    (team==='white'?whiteTeamTags:blackTeamTags).appendChild(tag);
+  });
+  teamPanels.classList.toggle('hidden', !state.room.started);
+  topLeftNameTags.classList.toggle('hidden', !!state.room.started);
+  if(state.room.started){
+    const myTeam=teams[state.userId];
+    document.querySelector('.wrapper')?.classList.toggle('team-black', myTeam==='black');
+  }
+}
+
 function subscribePlayers(){
   const tablesRef = ref(db, `rooms/${state.roomCode}/tables`);
   onValue(tablesRef, async snap => {
@@ -1149,6 +1285,7 @@ function subscribePlayers(){
 
     await syncSeatUI();
     renderTopLeftNameTags(players);
+    renderTeams(players);
   });
 }
 
@@ -1162,7 +1299,8 @@ function renderTopLeftNameTags(players){
 
   players.forEach(p => {
     const tag = document.createElement('div');
-    tag.className = 'top-left-name-tag' + (p.id === state.userId ? ' me' : '');
+    tag.className = 'top-left-name-tag';
+    tag.style.background = '#e5e7eb';
     tag.textContent = p.name;
 
     tag.onclick = () => {
@@ -1255,13 +1393,34 @@ btnStartPopClose.addEventListener('click', () => {
   startPop.classList.add('hidden');
 });
 
+
+btnGameStart.addEventListener('click', async () => {
+  if (!state.isHost || !state.roomCode) return;
+  const players=[...latestPlayers];
+  if(players.length<2) return;
+  const shuffled=shuffle(players);
+  const half=Math.ceil(shuffled.length/2);
+  const teams={};
+  shuffled.forEach((p,idx)=>{ teams[p.id]= idx<half ? 'white':'black'; });
+  const picked = shuffle(keywordPool).slice(0,8);
+  const keywords = {
+    white: picked.slice(0,4),
+    black: picked.slice(4,8)
+  };
+  await update(ref(db, `rooms/${state.roomCode}`), { started:true, teams, keywords });
+  startPop.classList.add('hidden');
+});
+
 btnResetRoom.addEventListener('click', async () => {
   if (!state.isHost || !state.roomCode) return;
 
   const base = `rooms/${state.roomCode}`;
   await Promise.all([
     remove(ref(db, `${base}/maxPlayers`)),
-    remove(ref(db, `${base}/tables`))
+    remove(ref(db, `${base}/tables`)),
+    remove(ref(db, `${base}/teams`)),
+    remove(ref(db, `${base}/keywords`)),
+    remove(ref(db, `${base}/started`))
   ]);
 
   state.seatedTable = null;
